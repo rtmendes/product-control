@@ -1,0 +1,401 @@
+// Product Control - Complete Database Schema
+// Optimized for Bolt.new, EZsite.ai, and Manus.ai deployment
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  clerkId           String   @unique
+  name              String?
+  avatar            String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  brandGuidelines   BrandGuidelines?
+  products          Product[]
+  revenueGoals      RevenueGoal[]
+  integrations      Integration[]
+  assets            Asset[]
+  campaigns         Campaign[]
+  activityLogs      ActivityLog[]
+
+  @@index([email])
+  @@index([clerkId])
+}
+
+// ============================================
+// BRAND & GUIDELINES
+// ============================================
+
+model BrandGuidelines {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  
+  // Brand Identity
+  brandName             String
+  tagline               String?
+  avatar                String?  @db.Text
+  logoUrl               String?
+  
+  // Colors
+  primaryColor          String   @default("#8B5CF6")
+  secondaryColor        String   @default("#3B82F6")
+  accentColor           String   @default("#EC4899")
+  
+  // Typography
+  fontFamily            String   @default("Inter")
+  headingFont           String?
+  bodyFont              String?
+  
+  // Voice & Positioning
+  voiceTone             String?  @db.Text
+  targetAudience        String?  @db.Text
+  uniqueSellingProp     String?  @db.Text
+  
+  // Research
+  competitorUrls        Json?    // Array of competitor URLs
+  sampleProducts        Json?    // Array of reference products
+  designAssets          Json?    // Additional brand assets
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// PRODUCTS
+// ============================================
+
+model Product {
+  id                String   @id @default(cuid())
+  userId            String
+  shopifyId         String?  @unique
+  
+  // Product Type & Status
+  type              String   // physical-pod, bundle, digital, collection, blog-article, upsell
+  status            String   @default("draft") // draft, review, published, archived
+  
+  // Basic Info
+  title             String
+  description       String?  @db.Text
+  handle            String?
+  
+  // Variants & Pricing
+  variants          Json?
+  pricing           Json?
+  compareAtPrice    Float?
+  
+  // POD Specific
+  mockupUrls        Json?
+  printProvider     String?
+  productionCost    Float?
+  
+  // Performance Metrics
+  revenue           Float    @default(0)
+  orders            Int      @default(0)
+  views             Int      @default(0)
+  conversionRate    Float    @default(0)
+  avgOrderValue     Float    @default(0)
+  profitMargin      Float    @default(0)
+  
+  // SEO & Content
+  seoKeywords       Json?
+  metaTitle         String?
+  metaDescription   String?  @db.Text
+  blogContent       String?  @db.Text
+  faqContent        Json?
+  
+  // Shopify Integration
+  shopifyData       Json?
+  themeMetafields   Json?
+  
+  // AI Generation
+  generationContext Json?
+  qualityScore      Float?
+  aiGeneratedAt     DateTime?
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  publishedAt       DateTime?
+  
+  // Relations
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rules             ConditionalRule[]
+  assets            Asset[]
+  campaigns         Campaign[]
+  
+  @@index([userId, type])
+  @@index([shopifyId])
+  @@index([status])
+}
+
+// ============================================
+// CONDITIONAL LOGIC RULES
+// ============================================
+
+model ConditionalRule {
+  id                String   @id @default(cuid())
+  userId            String
+  productId         String?
+  
+  // Rule Definition
+  name              String
+  description       String?  @db.Text
+  trigger           Json     // Trigger conditions
+  conditions        Json     // Condition array
+  actions           Json     // Action array
+  schedule          Json?    // Scheduling config
+  
+  // Rule Status
+  isActive          Boolean  @default(true)
+  priority          Int      @default(0)
+  executionCount    Int      @default(0)
+  lastExecutedAt    DateTime?
+  
+  // Performance
+  successRate       Float?
+  avgExecutionTime  Int?     // milliseconds
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  product           Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, isActive])
+  @@index([productId])
+}
+
+// ============================================
+// ASSETS (AI-GENERATED)
+// ============================================
+
+model Asset {
+  id                String   @id @default(cuid())
+  userId            String
+  productId         String?
+  
+  // Asset Type
+  type              String   // image, video, copy, email, ad
+  subtype           String?  // mockup, lifestyle, hero, etc.
+  
+  // Content
+  title             String?
+  description       String?  @db.Text
+  content           String?  @db.Text
+  url               String?  @db.Text
+  thumbnailUrl      String?
+  
+  // Metadata
+  fileSize          Int?
+  dimensions        Json?    // {width, height}
+  duration          Int?     // seconds (video/audio)
+  format            String?
+  
+  // AI Generation
+  aiModel           String?
+  prompt            String?  @db.Text
+  generationParams  Json?
+  qualityScore      Float?
+  
+  // Organization
+  tags              Json?
+  eagleId           String?
+  airtableId        String?
+  s3Key             String?
+  
+  // Performance
+  usage             Int      @default(0)
+  performance       Json?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product           Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  
+  @@index([userId, type])
+  @@index([productId])
+  @@index([eagleId])
+  @@index([airtableId])
+}
+
+// ============================================
+// CAMPAIGNS
+// ============================================
+
+model Campaign {
+  id                String   @id @default(cuid())
+  userId            String
+  productId         String?
+  
+  // Campaign Info
+  name              String
+  type              String   // email, ads, social
+  platform          String?  // klaviyo, facebook, google, etc.
+  status            String   @default("draft") // draft, active, paused, completed
+  
+  // Configuration
+  targeting         Json?
+  budget            Float?
+  schedule          Json?
+  
+  // Content
+  variants          Json?    // Array of campaign variants
+  
+  // Performance
+  impressions       Int      @default(0)
+  clicks            Int      @default(0)
+  conversions       Int      @default(0)
+  revenue           Float    @default(0)
+  spend             Float    @default(0)
+  roas              Float?   // Return on ad spend
+  
+  // Integration IDs
+  klaviyoFlowId     String?
+  facebookCampaignId String?
+  googleCampaignId  String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  launchedAt        DateTime?
+  completedAt       DateTime?
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product           Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  
+  @@index([userId, status])
+  @@index([productId])
+}
+
+// ============================================
+// REVENUE & GOALS
+// ============================================
+
+model RevenueGoal {
+  id                String   @id @default(cuid())
+  userId            String
+  
+  name              String
+  description       String?  @db.Text
+  targetAmount      Float
+  currentAmount     Float    @default(0)
+  deadline          DateTime
+  productIds        Json?    // Array of product IDs
+  status            String   @default("active") // active, completed, cancelled
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, status])
+}
+
+// ============================================
+// INTEGRATIONS
+// ============================================
+
+model Integration {
+  id                String   @id @default(cuid())
+  userId            String
+  platform          String   // shopify, klaviyo, eagle, airtable, etc.
+  
+  // Credentials (encrypted)
+  credentials       Json
+  configuration     Json?
+  
+  // Status
+  status            String   @default("disconnected") // connected, disconnected, error
+  lastSyncAt        DateTime?
+  syncFrequency     String?
+  syncErrors        Json?
+  
+  // Metadata
+  displayName       String?
+  iconUrl           String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, platform])
+  @@index([userId, status])
+}
+
+// ============================================
+// ACTIVITY LOGS
+// ============================================
+
+model ActivityLog {
+  id                String   @id @default(cuid())
+  userId            String
+  
+  action            String   // product_created, asset_generated, campaign_launched
+  entityType        String?  // product, asset, campaign
+  entityId          String?
+  
+  // Details
+  metadata          Json?
+  ipAddress         String?
+  userAgent         String?  @db.Text
+  
+  // AI Agent Context
+  agentName         String?
+  executionTime     Int?     // milliseconds
+  
+  createdAt         DateTime @default(now())
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([agentName])
+}
+
+// ============================================
+// KNOWLEDGE BASE (MCP)
+// ============================================
+
+model KnowledgeBaseEntry {
+  id                String   @id @default(cuid())
+  
+  type              String   // rule, template, insight, performance
+  category          String?
+  
+  // Content
+  title             String
+  content           Json
+  metadata          Json?
+  
+  // Organization
+  tags              Json?
+  relatedIds        Json?
+  
+  // Performance
+  usageCount        Int      @default(0)
+  effectivenessScore Float?
+  
+  // Versioning
+  version           Int      @default(1)
+  previousVersionId String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([type, category])
+}
