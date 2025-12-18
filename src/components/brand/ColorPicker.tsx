@@ -110,7 +110,13 @@ export function ColorPicker({ colors, onChange, maxColors = 12 }: ColorPickerPro
 
             <div className="space-y-4">
               <div className="flex justify-center">
-                <HexColorPicker color={currentColor} onChange={setCurrentColor} />
+                <div className="w-full max-w-xs">
+                  <HexColorPicker
+                    color={currentColor}
+                    onChange={setCurrentColor}
+                    style={{ width: '100%', height: '200px' }}
+                  />
+                </div>
               </div>
 
               <div>
