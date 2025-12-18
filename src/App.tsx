@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Toaster } from '@/components/ui/toaster';
 import { ModernSidebar } from '@/components/layout/ModernSidebar';
 import Dashboard from '@/pages/Dashboard';
@@ -14,7 +16,7 @@ import LaunchFlow from '@/pages/LaunchFlow';
 
 function App() {
   return (
-    <>
+    <DndProvider backend={HTML5Backend}>
       <Router>
         <div className="flex h-screen bg-slate-50">
           <ModernSidebar />
@@ -37,7 +39,7 @@ function App() {
         </div>
       </Router>
       <Toaster />
-    </>
+    </DndProvider>
   );
 }
 

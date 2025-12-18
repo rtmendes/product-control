@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, ChevronDown, ChevronRight, Folder, Edit2, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Folder, Edit2, Trash2, Grid3x3, LayoutList } from 'lucide-react';
+import { ProjectsKanbanView } from '@/components/dashboard/ProjectsKanbanView';
 
 interface Project {
   id: string;
@@ -10,6 +11,8 @@ interface Project {
   color: string;
   isExpanded: boolean;
   items: ProjectItem[];
+  status: 'not-started' | 'in-progress' | 'completed';
+  progress?: number;
 }
 
 interface ProjectItem {
@@ -20,6 +23,7 @@ interface ProjectItem {
 }
 
 export default function Projects() {
+  const [viewMode, setViewMode] = useState<'grid' | 'kanban'>('grid');
   const [projects, setProjects] = useState<Project[]>([
     {
       id: '1',
@@ -29,6 +33,8 @@ export default function Projects() {
       icon: '💼',
       color: 'bg-blue-500',
       isExpanded: true,
+      status: 'in-progress',
+      progress: 65,
       items: [
         { id: 'w1', name: 'Product Launch Workflow', type: 'workflow', icon: '🔄' },
         { id: 'd1', name: 'Operations Manual', type: 'document', icon: '📄' },
@@ -43,6 +49,8 @@ export default function Projects() {
       icon: '🎨',
       color: 'bg-purple-500',
       isExpanded: true,
+      status: 'not-started',
+      progress: 0,
       items: [
         { id: 'ai1', name: 'AI Prompts Database', type: 'table', icon: '✨' },
         { id: 'p1', name: 'Product Catalog', type: 'table', icon: '👕' },
@@ -71,11 +79,19 @@ export default function Projects() {
       ...newProject,
       color: 'bg-blue-500',
       isExpanded: true,
+      status: 'not-started',
+      progress: 0,
       items: []
     };
     setProjects([...projects, project]);
     setShowCreateModal(false);
     setNewProject({ name: '', description: '', type: 'business', icon: '📁' });
+  };
+
+  const handleProjectMove = (projectId: string, newStatus: 'not-started' | 'in-progress' | 'completed') => {
+    setProjects(projects.map(p =>
+      p.id === projectId ? { ...p, status: newStatus } : p
+    ));
   };
 
   return (
@@ -85,16 +101,48 @@ export default function Projects() {
           <h1 className="text-3xl font-bold text-slate-900">All Projects</h1>
           <p className="text-slate-600 mt-2">Organize your work into projects and workspaces</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          New Project
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 bg-slate-200 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded ${
+                viewMode === 'grid'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Grid3x3 className="h-4 w-4" />
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded ${
+                viewMode === 'kanban'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <LayoutList className="h-4 w-4" />
+              Kanban
+            </button>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            New Project
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {viewMode === 'kanban' ? (
+        <ProjectsKanbanView
+          projects={projects}
+          onProjectMove={handleProjectMove}
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {projects.map((project) => (
           <div key={project.id} className="bg-white rounded-lg border border-slate-200 overflow-hidden">
             <div
@@ -156,7 +204,8 @@ export default function Projects() {
             )}
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {showCreateModal && (
         <div

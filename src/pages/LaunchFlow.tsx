@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { BookOpen, GraduationCap, ShoppingBag, Printer, FileText, Share2 } from 'lucide-react';
+import { BookOpen, GraduationCap, ShoppingBag, Printer, FileText, Share2, LayoutList, Grid3x3 } from 'lucide-react';
 import { ProductWorkflowManager } from '@/components/workflows/ProductWorkflowManager';
+import { WorkflowStagesKanbanView } from '@/components/workflows/WorkflowStagesKanbanView';
 
 type ProductType = 'book' | 'course' | 'ecommerce' | 'print-on-demand' | 'article' | 'social-media';
 
@@ -82,6 +83,7 @@ export default function LaunchFlow() {
   const [selectedProductType, setSelectedProductType] = useState<ProductType | null>(null);
   const [workflowStages, setWorkflowStages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const handleSelectProductType = async (productType: ProductType) => {
     setLoading(true);
@@ -113,6 +115,12 @@ export default function LaunchFlow() {
     setWorkflowStages(updatedStages);
   };
 
+  const handleStageMove = (stageIndex: number, newStatus: 'not-started' | 'in-progress' | 'completed') => {
+    const updated = [...workflowStages];
+    updated[stageIndex] = { ...updated[stageIndex], status: newStatus };
+    setWorkflowStages(updated);
+  };
+
   if (selectedProductType) {
     const config = PRODUCT_TYPES.find(pt => pt.id === selectedProductType);
 
@@ -136,12 +144,41 @@ export default function LaunchFlow() {
               <p className="text-slate-600 mt-1">{config?.description}</p>
             </div>
           </div>
+          <div className="flex items-center gap-1 bg-slate-200 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded ${
+                viewMode === 'list'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Grid3x3 className="h-4 w-4" />
+              List
+            </button>
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded ${
+                viewMode === 'kanban'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <LayoutList className="h-4 w-4" />
+              Kanban
+            </button>
+          </div>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
+        ) : viewMode === 'kanban' ? (
+          <WorkflowStagesKanbanView
+            stages={workflowStages}
+            onStageMove={handleStageMove}
+          />
         ) : (
           <ProductWorkflowManager
             productType={selectedProductType}
