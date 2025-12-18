@@ -1,5 +1,17 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Circle, Clock, ChevronDown, ChevronRight, Plus, X, Link2, FileText, Tag } from 'lucide-react';
+import { TaskManager } from './TaskManager';
+
+interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: 'not-started' | 'in-progress' | 'completed';
+  priority: 'low' | 'medium' | 'high';
+  dueDate?: string;
+  assignee?: string;
+  tags?: string[];
+}
 
 interface WorkflowStage {
   name: string;
@@ -10,6 +22,7 @@ interface WorkflowStage {
   mediaFiles?: { name: string; type: string; url: string }[];
   tags?: string[];
   knowledgeBase?: { title: string; url: string }[];
+  tasks?: Task[];
 }
 
 interface ProductWorkflowManagerProps {
@@ -315,6 +328,14 @@ export function ProductWorkflowManager({ productType, stages, onStagesUpdate }: 
                         ))}
                       </div>
                     )}
+                  </div>
+
+                  <div>
+                    <TaskManager
+                      stageName={stage.name}
+                      tasks={stage.tasks || []}
+                      onTasksUpdate={(tasks) => updateStage(index, { tasks })}
+                    />
                   </div>
                 </div>
               )}
