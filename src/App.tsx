@@ -10,6 +10,7 @@ import AssetLibrary from '@/pages/AssetLibrary';
 import AIPrompts from '@/pages/AIPrompts';
 import Workflows from '@/pages/Workflows';
 import Projects from '@/pages/Projects';
+import LaunchFlow from '@/pages/LaunchFlow';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/ai-prompts" element={<AIPrompts />} />
                 <Route path="/workflows" element={<Workflows />} />
                 <Route path="/projects" element={<Projects />} />
+                <Route path="/launchflow" element={<LaunchFlow />} />
               </Routes>
             </div>
           </main>

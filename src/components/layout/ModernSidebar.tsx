@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronDown, Plus, Search, Home, Folder, FileText, Database } from 'lucide-react';
+import { ChevronRight, ChevronDown, Plus, Search, Home, Folder, FileText, Database, Rocket } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface SidebarFolder {
@@ -68,6 +68,7 @@ export function ModernSidebar() {
 
   const quickLinks = [
     { name: 'Dashboard', icon: Home, path: '/' },
+    { name: 'LaunchFlow', icon: Rocket, path: '/launchflow' },
     { name: 'All Projects', icon: Folder, path: '/projects' },
     { name: 'Brand Settings', icon: FileText, path: '/brand-settings' }
   ];

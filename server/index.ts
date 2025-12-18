@@ -13,6 +13,8 @@ import revenueRoutes from './routes/revenue';
 import integrationRoutes from './routes/integrations';
 import aiAgentRoutes from './routes/ai-agents';
 import knowledgeBaseRoutes from './routes/knowledge-base';
+import workflowTemplateRoutes from './routes/workflow-templates';
+import productWorkflowRoutes from './routes/product-workflows';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +60,8 @@ app.use('/api/revenue', revenueRoutes);
 app.use('/api/integrations', integrationRoutes);
 app.use('/api/ai-agents', aiAgentRoutes);
 app.use('/api/knowledge-base', knowledgeBaseRoutes);
+app.use('/api/workflow-templates', workflowTemplateRoutes);
+app.use('/api/product-workflows', productWorkflowRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
